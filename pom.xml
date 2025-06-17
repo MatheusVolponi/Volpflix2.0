@@ -8,11 +8,11 @@
 		<version>3.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>br.com.alura</groupId>
+	<groupId>br.com.Volpflix2.0</groupId>
 	<artifactId>0</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>screenmatch</name>
-	<description>Primeiro projeto Spring sem web</description>
+	<name>Volpflix2.0</name>
+	<description>Projeto pessoal de busca de filmes e séries</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -40,6 +40,16 @@
 			<version>1.10.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 
 	</dependencies>
 

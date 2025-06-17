@@ -1,8 +1,10 @@
 package br.com.volpflix.main;
 
 import br.com.volpflix.model.*;
+import br.com.volpflix.repository.SeriesRepository;
 import br.com.volpflix.service.ApiConsuption;
 import br.com.volpflix.service.DataConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +22,11 @@ public class Main {
     private final String ADDRESS = "https://www.omdbapi.com/?t=";
     private final String API_KEY = "&apikey=bd022199";
     private List<SeriesData> seriesData = new ArrayList<>();
+    private SeriesRepository repository;
+
+    public Main(SeriesRepository repository) {
+        this.repository = repository;
+    }
 
     public void showMenu() {
         var option = -1;
@@ -57,7 +64,9 @@ public class Main {
 
     private void searchSeriesWeb() {
         SeriesData data = getSeriesData();
+        Series series = new Series(data);
         seriesData.add(data);
+        repository.save(series);
         System.out.println(data);
     }
 
@@ -84,10 +93,7 @@ public class Main {
     }
 
     private void listSearchSeries(){
-        List<Series> series = new ArrayList<>();
-        series = seriesData.stream()
-                        .map(s -> new Series(s))
-                                .toList();
+        List<Series> series = repository.findAll();
         series.stream()
                 .sorted(Comparator.comparing(Series::getGenre))
                 .forEach(System.out::println);
