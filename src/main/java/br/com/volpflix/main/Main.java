@@ -36,6 +36,10 @@ public class Main {
                     1 - Buscar séries
                     2 - Buscar episódios
                     3 - Listar séries buscadas
+                    4 - Buscar série por título
+                    5 - Buscar séries por ator
+                    6 - Top 5 Séries
+                    7 - Buscar séries por categoria
                     
                     0 - Sair
                     """;
@@ -53,6 +57,18 @@ public class Main {
                     break;
                 case 3:
                     listSearchSeries();
+                    break;
+                case 4:
+                    searchSeriesPerTitle();
+                    break;
+                case 5:
+                    searchSeriesPerActor();
+                    break;
+                case 6:
+                    searchTop5Series();
+                    break;
+                case 7:
+                    searchSeriesPerGenre();
                     break;
                 case 0:
                     System.out.println("Saindo...");
@@ -84,9 +100,7 @@ public class Main {
         listSearchSeries();
         System.out.println("Escolha uma série pelo nome: ");
         var nameSeries = read.nextLine();
-        Optional<Series> first = series.stream()
-                .filter(s -> s.getTitle().toUpperCase().contains(nameSeries.toUpperCase()))
-                .findFirst();
+        Optional<Series> first =  repository.findByTitleContainingIgnoreCase(nameSeries);
 
         if(first.isPresent()){
             var seriesFound = first.get();
@@ -108,6 +122,40 @@ public class Main {
         } else {
             System.out.println("Série não encontrada.");
         }
+    }
+
+    private void searchSeriesPerTitle() {
+        System.out.println("Escolha uma série pelo nome: ");
+        var nameSeries = read.nextLine();
+        Optional<Series> searchedSeries = repository.findByTitleContainingIgnoreCase(nameSeries);
+
+        if(searchedSeries.isPresent()){
+            System.out.println("Dados da série: " + searchedSeries.get());
+        } else {
+            System.out.println("Série não encontrada.");
+        }
+    }
+
+    private void searchSeriesPerActor() {
+        System.out.println("Qual o nome para busca?: ");
+        var actorName = read.nextLine();
+        List<Series> foundedSeries = repository.findByActorsContainingIgnoreCase(actorName);
+        System.out.println("Séries em que " + actorName + " atuou: ");
+        foundedSeries.forEach(s -> System.out.println(s.getTitle() + " Avaliação: " + s.getRate()));
+    }
+
+    private void searchTop5Series() {
+        List<Series> topSeries = repository.findTop5ByOrderByRateDesc();
+        topSeries.forEach(s -> System.out.println(s.getTitle() + " Avaliação: " + s.getRate()));
+    }
+
+    private void searchSeriesPerGenre() {
+        System.out.println("Qual categoria você deseja pesquisar?: ");
+        var genreName = read.nextLine();
+        Category category = Category.fromPortuguese(genreName);
+        List<Series> seriesPerGenre = repository.findByGenre(category);
+        System.out.println("Séries da categoria " + genreName);
+        seriesPerGenre.forEach(System.out::println);
     }
 
     private void listSearchSeries(){
