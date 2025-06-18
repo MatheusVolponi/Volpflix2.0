@@ -1,14 +1,27 @@
 package br.com.volpflix.model;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+@Entity
+@Table(name ="episodies")
 public class Episode {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private Integer season;
     private String title;
     private Integer number;
     private Double rate;
     private LocalDate releaseDate;
+
+    @ManyToOne
+    private Series series;
+
+    public Episode(){}
 
     public Episode(Integer season, EpisodesData episodesData) {
         this.season = season;
@@ -26,6 +39,14 @@ public class Episode {
         } catch (DateTimeParseException ex) {
             this.releaseDate = null;
         }
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Integer getSeason() {
@@ -66,6 +87,14 @@ public class Episode {
 
     public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public Series getSeries() {
+        return series;
+    }
+
+    public void setSeries(Series series) {
+        this.series = series;
     }
 
     @Override

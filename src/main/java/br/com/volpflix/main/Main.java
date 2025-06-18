@@ -23,6 +23,7 @@ public class Main {
     private final String API_KEY = "&apikey=bd022199";
     private List<SeriesData> seriesData = new ArrayList<>();
     private SeriesRepository repository;
+    private List<Series> series = new ArrayList<>();
 
     public Main(SeriesRepository repository) {
         this.repository = repository;
@@ -65,7 +66,6 @@ public class Main {
     private void searchSeriesWeb() {
         SeriesData data = getSeriesData();
         Series series = new Series(data);
-        seriesData.add(data);
         repository.save(series);
         System.out.println(data);
     }
@@ -81,19 +81,37 @@ public class Main {
     }
 
     private void searchEpisodePerSeries() {
-        SeriesData seriesData = getSeriesData();
-        List<SeasonsData> seasons = new ArrayList<>();
+        listSearchSeries();
+        System.out.println("Escolha uma série pelo nome: ");
+        var nameSeries = read.nextLine();
+        Optional<Series> first = series.stream()
+                .filter(s -> s.getTitle().toUpperCase().contains(nameSeries.toUpperCase()))
+                .findFirst();
 
-        for (int i = 1; i <= seriesData.seasons(); i++) {
-            var json = apiConsuption.getData(ADDRESS + seriesData.title().replace(" ", "+") + "&season=" + i + API_KEY);
+        if(first.isPresent()){
+            var seriesFound = first.get();
+            List<SeasonsData> seasons = new ArrayList<>();
+
+            for (int i = 1; i <= seriesFound.getSeasons(); i++) {
+            var json = apiConsuption.getData(ADDRESS + seriesFound.getTitle().replace(" ", "+") + "&season=" + i + API_KEY);
             SeasonsData seasonsData = converter.getData(json, SeasonsData.class);
             seasons.add(seasonsData);
+            }
+            seasons.forEach(System.out::println);
+
+            List<Episode> episodes = seasons.stream()
+                    .flatMap(d -> d.episodes().stream()
+                            .map(e -> new Episode(d.season(), e)))
+                    .collect(Collectors.toList());
+            seriesFound.setEpisodes(episodes);
+            repository.save(seriesFound);
+        } else {
+            System.out.println("Série não encontrada.");
         }
-        seasons.forEach(System.out::println);
     }
 
     private void listSearchSeries(){
-        List<Series> series = repository.findAll();
+        series = repository.findAll();
         series.stream()
                 .sorted(Comparator.comparing(Series::getGenre))
                 .forEach(System.out::println);
