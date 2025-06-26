@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 @Entity
-@Table(name ="episodies")
+@Table(name ="episodes")
 public class Episode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

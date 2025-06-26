@@ -4,12 +4,11 @@ import br.com.volpflix.model.*;
 import br.com.volpflix.repository.SeriesRepository;
 import br.com.volpflix.service.ApiConsuption;
 import br.com.volpflix.service.DataConverter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 
+import java.awt.print.Pageable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +23,7 @@ public class Main {
     private List<SeriesData> seriesData = new ArrayList<>();
     private SeriesRepository repository;
     private List<Series> series = new ArrayList<>();
+    private Optional<Series> researchedSeries;
 
     public Main(SeriesRepository repository) {
         this.repository = repository;
@@ -40,6 +40,9 @@ public class Main {
                     5 - Buscar séries por ator
                     6 - Top 5 Séries
                     7 - Buscar séries por categoria
+                    8 - Buscar episódio por trecho
+                    9 - Top 5 Episódios por Série
+                    10 - Buscar episódios a partir de uma data.
                     
                     0 - Sair
                     """;
@@ -69,6 +72,15 @@ public class Main {
                     break;
                 case 7:
                     searchSeriesPerGenre();
+                    break;
+                case 8:
+                    searchEpisodeByExcerpt();
+                    break;
+                case 9:
+                    searchTop5EpisodesPerSeries();
+                    break;
+                case 10:
+                    searchEpisodesAfterDate();
                     break;
                 case 0:
                     System.out.println("Saindo...");
@@ -127,10 +139,10 @@ public class Main {
     private void searchSeriesPerTitle() {
         System.out.println("Escolha uma série pelo nome: ");
         var nameSeries = read.nextLine();
-        Optional<Series> searchedSeries = repository.findByTitleContainingIgnoreCase(nameSeries);
+        researchedSeries = repository.findByTitleContainingIgnoreCase(nameSeries);
 
-        if(searchedSeries.isPresent()){
-            System.out.println("Dados da série: " + searchedSeries.get());
+        if(researchedSeries.isPresent()){
+            System.out.println("Dados da série: " + researchedSeries.get());
         } else {
             System.out.println("Série não encontrada.");
         }
@@ -163,5 +175,41 @@ public class Main {
         series.stream()
                 .sorted(Comparator.comparing(Series::getGenre))
                 .forEach(System.out::println);
+    }
+
+
+    private void searchEpisodeByExcerpt() {
+        System.out.println("Qual o nome do episódio para busca?: ");
+        var excerptEpisode = read.nextLine();
+        List<Episode> episodesFound = repository.episodesPerExcerpt(excerptEpisode);
+        episodesFound.forEach(e ->
+                System.out.printf("Série: %s Temporada %s - Episódio %s - %s\n",
+                        e.getSeries().getTitle(), e.getSeason(),
+                        e.getNumber(), e.getTitle()));
+    }
+
+    private void searchTop5EpisodesPerSeries() {
+        searchSeriesPerTitle();
+        if (researchedSeries.isPresent()){
+            Series series = researchedSeries.get();
+            List<Episode> topEpisodes = repository.top5EpisodesBySerie(series);
+            topEpisodes.forEach(e ->
+                    System.out.printf("Série: %s Temporada %s - Episódio %s - %s Avaliação %s\n",
+                            e.getSeries().getTitle(), e.getSeason(),
+                            e.getNumber(), e.getTitle(), e.getRate()));
+        }
+    }
+
+    private void searchEpisodesAfterDate() {
+        searchSeriesPerTitle();
+        if (researchedSeries.isPresent()){
+            Series series = researchedSeries.get();
+            System.out.println("Digite o ano limite de lançamento para busca: ");
+            var releasedYear = read.nextInt();
+            read.nextLine();
+
+            List<Episode> dateEpisodes = repository.episodesAndSeriesPerYear(series, releasedYear);
+            dateEpisodes.forEach(System.out::println);
+        }
     }
 }
